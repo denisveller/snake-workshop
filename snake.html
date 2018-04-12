@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Snake!</title>
+</head>
+
+<body>
+  <p id="score">
+    Score:
+  </p>
+  <p id="highScore">
+    High Score:
+  </p>
+  <p id="recordHolder">
+    Record Holder: Cercei Lannister
+  </p>
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <script src="https://code.jquery.com/jquery-2.1.0.js"></script>
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    var socket = io();
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    var username = prompt("Please enter your name", "Ned Stark");
+
+    var width = canvas.width;
+    var height = canvas.height;
+
+    var blockSize = 10;
+    var widthInBlocks = width / blockSize;
+    var heightInBlocks = height / blockSize;
+
+    var score = 0;
+    var highScore = 0;
+
+    var directions = {
+      37: "left",
+      38: "up",
+      39: "right",
+      40: "down"
+    };
+    socket.on('setRecords', function (record) {
+      highScore = record.score;
+      document.getElementById("recordHolder").innerHTML = "Record Holder: " + record.username;
+    });
+    function drawBorder() {
+      ctx.fillStyle = "Gray";
+      ctx.fillRect(0, 0, width, blockSize);
+      ctx.fillRect(0, height - blockSize, width, blockSize);
+      ctx.fillRect(0, 0, blockSize, height);
+      ctx.fillRect(width - blockSize, 0, blockSize, height);
+    };
+
+    function drawScore() {
+      document.getElementById("score").innerHTML = "Score: " + score;
+    };
+    function drawHighScore() {
+      document.getElementById("highScore").innerHTML = "High Score: " + highScore;
+    };
+
+    function gameOver() {
+      playing = false;
+      ctx.font = "60px Courier";
+      ctx.fillStyle = "Black";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Game Over", width / 2, height / 2);
+      ctx.font = "40px Courier";
+      ctx.fillStyle = "Black";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Score: " + score, width / 2, (height / 2) - height / 10);
+
+      if (score === highScore) {
+        ctx.font = "40px Courier";
+        ctx.fillStyle = "Black";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("New High Score!", width / 2, (height / 2) + height / 10);
+
+      }
+    };
+
+    function circle(x, y, radius, fillCircle) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+      if (fillCircle) {
+        ctx.fill();
+      } else {
+        ctx.stroke();
+      }
+    };
+    class Block {
+      constructor(col, row) {
+        this.col = col;
+        this.row = row;
+      }
+      drawSquare(color) {
+        var x = this.col * blockSize;
+        var y = this.row * blockSize;
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, blockSize, blockSize);
+      };
+      drawCircle(color) {
+        var centerX = this.col * blockSize + blockSize / 2;
+        var centerY = this.row * blockSize + blockSize / 2;
+        ctx.fillStyle = color;
+        circle(centerX, centerY, blockSize / 2, true);
+      };
+      equal(otherBlock) {
+        return this.col === otherBlock.col && this.row === otherBlock.row;
+      };
+    };
+    class Snake {
+      constructor() {
+        var startX = Math.floor((.6 * widthInBlocks) * Math.random() + .2 * widthInBlocks);
+        var startY = Math.floor((.6 * heightInBlocks) * Math.random() + .2 * heightInBlocks);
+        var randomDirection = directions[Math.ceil(4 * Math.random() + 36)];
+        this.segments = [
+          new Block(startX, startY),
+        ];
+        this.direction = randomDirection;
+        this.nextDirection = randomDirection;
+      };
+      draw() {
+        for (var i = 0; i < this.segments.length; i++) {
+          this.segments[i].drawSquare("Blue");
+        };
+      };
+      move() {
+        var head = this.segments[0];
+        var newHead;
+
+        this.direction = this.nextDirection;
+
+        if (this.direction === "right") {
+          newHead = new Block(head.col + 1, head.row);
+        } else if (this.direction === "down") {
+          newHead = new Block(head.col, head.row + 1);
+        } else if (this.direction === "left") {
+          newHead = new Block(head.col - 1, head.row);
+        } else if (this.direction === "up") {
+          newHead = new Block(head.col, head.row - 1);
+        }
+
+        if (this.checkCollision(newHead)) {
+          gameOver();
+          return;
+        }
+
+        this.segments.unshift(newHead);
+
+        if (newHead.equal(apple.position)) {
+          score++;
+          if (score > highScore) {
+            var record = { score, username };
+            socket.emit('highScore', (record));
+          }
+          animationTime -= 5;
+          apple.move(this.segments);
+        } else {
+          this.segments.pop();
+        }
+      };
+      checkCollision(head) {
+        var leftCollision = (head.col === 0);
+        var topCollision = (head.row === 0);
+        var rightCollision = (head.col === widthInBlocks - 1);
+        var bottomCollision = (head.row === heightInBlocks - 1);
+
+        var wallCollision = leftCollision || topCollision || rightCollision || bottomCollision;
+
+        var selfCollision = false;
+
+        for (var i = 0; i < this.segments.length; i++) {
+          if (head.equal(this.segments[i])) {
+            selfCollision = true;
+            console.log(head, this.segments, this.segments[i]);
+          }
+        }
+        return wallCollision || selfCollision;
+      };
+      setDirection(newDirection) {
+        if (this.direction === "up" && newDirection === "down") {
+          return;
+        } else if (this.direction === "right" && newDirection === "left") {
+          return;
+        } else if (this.direction === "down" && newDirection === "up") {
+          return;
+        } else if (this.direction === "left" && newDirection === "right") {
+          return;
+        }
+
+        this.nextDirection = newDirection;
+      };
+    };
+    class Apple {
+      constructor() {
+        var startX = Math.floor((.6 * widthInBlocks) * Math.random() + .2 * widthInBlocks);
+        var startY = Math.floor((.6 * heightInBlocks) * Math.random() + .2 * heightInBlocks);
+        this.position = new Block(startX, startY);
+      };
+      draw() {
+        this.position.drawCircle("LimeGreen");
+      };
+      move(occupiedBlocks) {
+        var randomCol = Math.floor(Math.random() * (widthInBlocks - 2)) + 1;
+        var randomRow = Math.floor(Math.random() * (heightInBlocks - 2)) + 1;
+        this.position = new Block(randomCol, randomRow);
+        for (var i = 0; i < occupiedBlocks.length; i++) {
+          if (this.position.equal(occupiedBlocks[i])) {
+            this.move(occupiedBlocks);
+            return;
+          }
+        }
+      };
+    };
+    var snake = new Snake();
+    var apple = new Apple();
+
+    var playing = true;
+    var animationTime = 100;
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, width, height);
+      drawScore();
+      drawHighScore();
+      snake.move();
+      snake.draw();
+      apple.draw();
+      drawBorder();
+      socket.on('newRecord', function (record) {
+        highScore = record.score;
+        document.getElementById("recordHolder").innerHTML = "Record Holder: " + record.username;
+      });
+      if (playing) {
+        setTimeout(gameLoop, animationTime);
+      }
+    };
+    gameLoop();
+    document.addEventListener('keydown', function (event) {
+      var newDirection = directions[event.keyCode];
+      if (newDirection !== undefined) {
+        snake.setDirection(newDirection);
+      }
+    });
+  </script>
+</body>
+
+</html>
