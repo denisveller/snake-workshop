@@ -45,8 +45,8 @@
     socket.on('setRecords', function (record) {
       highScore = record.score;
       document.getElementById("recordHolder").innerHTML = "Record Holder: " + record.username;
+      var username = prompt("Please enter your name", "Ned Stark");
     });
-    var username = prompt("Please enter your name", "Ned Stark");
     function drawBorder() {
       ctx.fillStyle = "Gray";
       ctx.fillRect(0, 0, width, blockSize);
