@@ -25,7 +25,6 @@
     var socket = io();
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
-    var username = prompt("Please enter your name", "Ned Stark");
 
     var width = canvas.width;
     var height = canvas.height;
@@ -47,6 +46,7 @@
       highScore = record.score;
       document.getElementById("recordHolder").innerHTML = "Record Holder: " + record.username;
     });
+    var username = prompt("Please enter your name", "Ned Stark");
     function drawBorder() {
       ctx.fillStyle = "Gray";
       ctx.fillRect(0, 0, width, blockSize);
