@@ -18,14 +18,16 @@ function handler(req, res) {
  
     });
 }
-var score;
+var score = 0;
 var username;
 var recordObject = {score, username};
 recordObject.score = 0;
 io.on('connection', function (socket) {
   io.emit('setRecords', recordObject);
-  socket.on('highScore', function (record) {
-    recordObject = record;
-    io.emit('newRecord', recordObject);
+  socket.on('score', function (scoreObject) {
+    if (scoreObject.score > recordObject.score) {
+      recordObject = scoreObject;
+      io.emit('newRecord', recordObject);
+    }
   });
 });

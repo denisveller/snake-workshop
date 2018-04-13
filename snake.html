@@ -156,10 +156,8 @@
 
         if (newHead.equal(apple.position)) {
           score++;
-          if (score > highScore) {
-            var record = { score, username };
-            socket.emit('highScore', (record));
-          }
+          var scoreObject = { score, username };
+          socket.emit('score', (scoreObject));
           animationTime -= 5;
           apple.move(this.segments);
         } else {
