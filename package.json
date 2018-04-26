@@ -1,15 +1,24 @@
 {
-	"name": "Snake",
-	"description": "a codeday workshop",
-	"version": "1.0.0",
-	"engines": {
-	  "node": "8.9.4"
-	},
-	"scripts": {
-		"start": "node server.js"
-	  },
-	  "dependencies": {
-		"socket.io": "^2.0.4"
-	  }
-	
-  }
+  "name": "snake-js",
+  "version": "1.0.0",
+  "description": "Snake workshop for codeday",
+  "main": "server.js",
+  "dependencies": {
+    "socket.io": "^2.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denisveller/snake-workshop.git"
+  },
+  "author": "Denis Veller",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/denisveller/snake-workshop/issues"
+  },
+  "homepage": "https://github.com/denisveller/snake-workshop#readme"
+}
