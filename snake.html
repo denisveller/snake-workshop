@@ -198,16 +198,16 @@
     };
     class Apple {
       constructor() {
-        var startX = Math.floor((.6 * widthInBlocks) * Math.random() + .2 * widthInBlocks);
-        var startY = Math.floor((.6 * heightInBlocks) * Math.random() + .2 * heightInBlocks);
+        var startX = Math.floor(Math.random() * (widthInBlocks - 4)) + 2;
+        var startY = Math.floor(Math.random() * (heightInBlocks - 4)) + 2;
         this.position = new Block(startX, startY);
       };
       draw() {
         this.position.drawCircle("LimeGreen");
       };
       move(occupiedBlocks) {
-        var randomCol = Math.floor(Math.random() * (widthInBlocks - 2)) + 1;
-        var randomRow = Math.floor(Math.random() * (heightInBlocks - 2)) + 1;
+        var randomCol = Math.floor(Math.random() * (widthInBlocks - 4)) + 2;
+        var randomRow = Math.floor(Math.random() * (heightInBlocks - 4)) + 2;
         this.position = new Block(randomCol, randomRow);
         for (var i = 0; i < occupiedBlocks.length; i++) {
           if (this.position.equal(occupiedBlocks[i])) {
