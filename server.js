@@ -9,7 +9,7 @@ server.listen(process.env.PORT || process.env.port || 8080);
 function handler(req, res) {
   var q = url.parse(req.url, true);
   var filename = "." + q.pathname
-  if (filename === "./files/") {
+  if (filename === "./files") {
     fs.readFile(__dirname + '/index.html',
       function (err, data) {
         if (err) {
